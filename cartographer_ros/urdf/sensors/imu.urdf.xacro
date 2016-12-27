@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="zed_camera">
+
+    <xacro:macro name="sensor_imu" params="parent *origin">
+        <link name="imu_link">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <box size="0.035 0.035 0.022"/>
+                </geometry>
+                <material name="imu_red">
+                    <color rgba="0.9 0.3 0.3 1"/>
+                </material>
+            </visual>
+        </link>
+        <joint name="imu_to_${parent}" type="fixed">
+            <parent link="${parent}"/>
+            <child link="imu_link"/>
+            <xacro:insert_block name="origin"/>
+        </joint>
+    </xacro:macro>
+</robot>

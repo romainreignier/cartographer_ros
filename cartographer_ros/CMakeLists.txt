@@ -16,6 +16,8 @@ cmake_minimum_required(VERSION 2.8.12)  # Ships with Ubuntu 14.04 (Trusty)
 
 project(cartographer_ros)
 
+set(CMAKE_CXX_STANDARD 14)
+
 set(PACKAGE_DEPENDENCIES
   cartographer_ros_msgs
   eigen_conversions
@@ -32,6 +34,8 @@ set(PACKAGE_DEPENDENCIES
   tf2_eigen
   tf2_ros
   urdf
+  laser_geometry
+  pcl_ros
 )
 
 find_package(cartographer REQUIRED)
@@ -58,6 +62,7 @@ endif()
 
 include_directories(
   ${urdfdom_headers_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
 
 # Override Catkin's GTest configuration to use GMock.
@@ -160,6 +165,11 @@ if (CATKIN_ENABLE_TESTING)
   target_link_libraries(time_conversion_test ${PROJECT_NAME})
   set_target_properties(time_conversion_test PROPERTIES COMPILE_FLAGS ${TARGET_COMPILE_FLAGS})
 endif()
+
+# Add laser_scan_merger
+add_executable(laser_scan_merger_node laser_scan_merger/main.cpp laser_scan_merger/LaserScanMerger.cpp)
+add_dependencies(laser_scan_merger_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(laser_scan_merger_node ${catkin_LIBRARIES})
 
 install(DIRECTORY launch urdf configuration_files
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

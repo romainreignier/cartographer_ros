@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<launch>
+    <param name="/use_sim_time" value="true" />
+
+    <param name="robot_description" command="$(find xacro)/xacro '$(find cartographer_ros)/urdf/robot.urdf.xacro'" />
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+    <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="astra_left_depthimage_to_laserscan">
+      <!-- Pixel rows to use to generate the laserscan. For each column, the scan will
+           return the minimum value for those pixels centered vertically in the image. -->
+      <param name="scan_height" value="10"/>
+      <param name="output_frame_id" value="astra_left_depth_frame"/>
+      <param name="range_min" value="0.4"/>
+      <remap from="image" to="astra_left/depth/image_raw"/>
+      <remap from="scan" to="astra_left_scan"/>
+
+      <!-- Somehow topics here get prefixed by "$(arg camera)" when not inside an app namespace,
+           so in this case "$(arg scan_topic)" must provide an absolute topic name (issue #88).
+           Probably is a bug in the nodelet manager: https://github.com/ros/nodelet_core/issues/7 -->
+      <remap from="left_astra/image" to="left_astra/depth/image_raw"/>
+      <remap from="astra_left/scan" to="astra_left_scan"/>
+    </node>
+
+    <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="astra_right_depthimage_to_laserscan">
+      <!-- Pixel rows to use to generate the laserscan. For each column, the scan will
+           return the minimum value for those pixels centered vertically in the image. -->
+      <param name="scan_height" value="10"/>
+      <param name="output_frame_id" value="astra_right_depth_frame"/>
+      <param name="range_min" value="0.4"/>
+      <remap from="image" to="astra_right/depth/image_raw"/>
+      <remap from="scan" to="astra_right_scan"/>
+
+      <!-- Somehow topics here get prefixed by "$(arg camera)" when not inside an app namespace,
+           so in this case "$(arg scan_topic)" must provide an absolute topic name (issue #88).
+           Probably is a bug in the nodelet manager: https://github.com/ros/nodelet_core/issues/7 -->
+      <remap from="right_astra/image" to="right_astra/depth/image_raw"/>
+      <remap from="astra_right/scan" to="astra_right_scan"/>
+    </node>
+
+    <!-- merge the two astras scans into a point cloud -->
+    <node pkg="cartographer_ros" name="laser_scan_merger" type="laser_scan_merger_node" output="screen">
+        <param name="output_frame" value="astras_center"/>
+        <remap from="~scan1" to="/astra_left_scan" />
+        <remap from="~scan2" to="/astra_right_scan" />
+        <remap from="~merged_cloud" to="/astras_cloud" />
+    </node>
+
+    <!-- convert point cloud to laser scan -->
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+        <remap from="cloud_in" to="/astras_cloud"/>
+        <remap from="scan" to="/astras_scan"/>
+        <rosparam>
+            #target_frame: camera_link # Leave disabled to output scan in pointcloud frame
+            transform_tolerance: 0.01
+            min_height: -1.0
+            max_height: 1.0
+
+            angle_min: -1.5708 # -M_PI/2
+            angle_max: 1.5708 # M_PI/2
+            angle_increment: 0.0087 # M_PI/360.0
+            scan_time: 0.03333
+            range_min: 0.4
+            range_max: 8.0
+            use_inf: true
+
+            # Concurrency level, affects number of pointclouds queued for processing and number of threads used
+            # 0 : Detect number of cores
+            # 1 : Single threaded
+            # 2->inf : Parallelism level
+            concurrency_level: 1
+        </rosparam>
+    </node>
+
+    <node name="cartographer_node" pkg="cartographer_ros"
+        type="cartographer_node" args="
+        -configuration_directory $(find cartographer_ros)/configuration_files
+        -configuration_basename astras_scan.lua"
+        output="screen" required="true">
+        <remap from="scan" to="/astras_scan"/>
+        <remap from="odom" to="/odomcomputer/odometry"/>
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" required="true"
+        args="-d $(find cartographer_ros)/configuration_files/demo_2d.rviz" />
+
+    <node name="playbag" pkg="rosbag" type="play"
+        args="--clock $(arg bag_filename)" />
+</launch>

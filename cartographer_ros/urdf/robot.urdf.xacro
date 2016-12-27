@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot">
+
+    <xacro:property name="wheel_radius" value="0.1"/>
+    <xacro:property name="body_length" value="0.5"/>
+    <xacro:property name="body_width" value="0.4"/>
+    <xacro:property name="body_height" value="0.20"/>
+    <xacro:property name="robot_clearance" value="0.055"/>
+
+    <material name="dark_grey">
+        <color rgba="0.2 0.2 0.2 1"/>
+    </material>
+    <material name="light_grey">
+        <color rgba="0.8 0.8 0.8 0.8"/>
+    </material>
+        <material name="beige">
+            <color rgba="0.76 0.76 0.7 1.0"/>
+        </material>
+
+    <link name="base_link"></link>
+
+    <link name="robot_body">
+        <visual>
+            <orign xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${body_length} ${body_width} ${body_height}"/>
+            </geometry>
+            <material name="beige"/>
+        </visual>
+    </link>
+    <joint name="base_to_body" type="fixed">
+        <parent link="base_link"/>
+        <child link="robot_body"/>
+        <origin xyz="0 0 ${body_height/2 + robot_clearance}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="robot_up_plate"></link>
+    <joint name="base_to_up_plate" type="fixed">
+        <parent link="robot_body"/>
+        <child link="robot_up_plate"/>
+        <origin xyz="0 0 ${body_height/2}" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:macro name="wheel" params="prefix position orientation">
+        <link name="${prefix}_wheel">
+            <visual>
+                <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+                <geometry>
+                    <cylinder length="0.05" radius="${wheel_radius}"/>
+                </geometry>
+                <material name="dark_grey"/>
+            </visual>
+        </link>
+        <joint name="base_to_${prefix}_wheel" type="fixed">
+            <parent link="robot_up_plate"/>
+            <child link="${prefix}_wheel"/>
+            <origin xyz="${position}" rpy="${orientation}"/>
+        </joint>
+    </xacro:macro>
+    <xacro:wheel prefix="left" position="-0.16 0.245 -0.155" orientation="0 0 0"/>
+    <xacro:wheel prefix="right" position="-0.16 -0.245 -0.155" orientation="0 0 0"/>
+
+    <xacro:macro name="caster" params="prefix position">
+        <link name="${prefix}_caster">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <sphere radius="0.0275"/>
+                </geometry>
+                <material name="dark_grey"/>
+            </visual>
+        </link>
+        <joint name="base_to_${prefix}_caster" type="fixed">
+            <parent link="robot_up_plate"/>
+            <child link="${prefix}_caster"/>
+            <origin xyz="${position}" rpy="0 0 0"/>
+        </joint>
+    </xacro:macro>
+    <xacro:caster prefix="left" position="0.2 0.16 -0.2275"/>
+    <xacro:caster prefix="right" position="0.2 -0.16 -0.2275"/>
+
+    <!-- Astra Left -->
+    <xacro:include filename="$(find cartographer_ros)/urdf/sensors/astra.urdf.xacro"/>
+    <xacro:sensor_astra parent="robot_up_plate" prefix="astra_left">
+       <origin xyz="0.2142 0.1 0.04" rpy="-0.012 -0.072 0.4"/>
+    </xacro:sensor_astra>
+    <!-- Astra Right -->
+    <xacro:sensor_astra parent="robot_up_plate" prefix="astra_right">
+        <origin xyz="0.1784 -0.1935 0.024" rpy="0.036 -0.104 -0.305"/>
+    </xacro:sensor_astra>
+
+    <link name="astras_center"/>
+    <joint name="base_to_astras_center" type="fixed">
+        <parent link="robot_up_plate"/>
+        <child link="astras_center"/>
+        <origin xyz="0.19 0.03 0.035" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Sick TIM 561 -->
+    <xacro:include filename="$(find cartographer_ros)/urdf/sensors/sick_tim.urdf.xacro"/>
+    <xacro:sick_tim551 name="tim_link" ros_topic="tim_scan"/>
+    <joint name="tim_mount_to_base" type="fixed">
+        <parent link="robot_up_plate"/>
+        <child link="tim_link_mount_link"/>
+        <origin xyz="0.2688 -0.012 0.282" rpy="0 0 -0.004"/>
+    </joint>
+
+    <!-- Imu -->
+    <xacro:include filename="$(find cartographer_ros)/urdf/sensors/imu.urdf.xacro"/>
+    <xacro:sensor_imu parent="robot_up_plate">
+        <origin xyz="0.11 -0.04 0.011" rpy="0 0 0"/>
+   </xacro:sensor_imu>
+</robot>
+

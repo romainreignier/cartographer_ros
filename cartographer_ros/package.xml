@@ -59,6 +59,10 @@
   <depend>tf2_ros</depend>
   <depend>urdf</depend>
   <depend>yaml-cpp</depend>
+  <depend>laser_geometry</depend>
+  <depend>pcl_ros</depend>
+  <depend>depthimage_to_laserscan</depend>
+  <depend>pointcloud_to_laserscan</depend>
 
   <test_depend>rosunit</test_depend>
 
