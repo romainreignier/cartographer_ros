@@ -163,9 +163,11 @@ if (CATKIN_ENABLE_TESTING)
 endif()
 
 # Add laser_scan_merger
-add_executable(laser_scan_merger_node laser_scan_merger/main.cpp laser_scan_merger/LaserScanMerger.cpp)
-add_dependencies(laser_scan_merger_node ${catkin_EXPORTED_TARGETS})
-target_link_libraries(laser_scan_merger_node ${catkin_LIBRARIES})
+google_binary(laser_scan_merger_node
+  SRCS
+    laser_scan_merger/main.cpp
+    laser_scan_merger/LaserScanMerger.cpp
+)
 
 install(DIRECTORY launch urdf configuration_files
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
