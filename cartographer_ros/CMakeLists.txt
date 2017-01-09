@@ -169,7 +169,13 @@ google_binary(laser_scan_merger_node
     laser_scan_merger/LaserScanMerger.cpp
 )
 
-install(DIRECTORY launch urdf configuration_files
+install(TARGETS laser_scan_merger_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY launch urdf meshes configuration_files
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
