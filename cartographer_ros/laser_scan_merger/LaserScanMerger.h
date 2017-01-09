@@ -18,7 +18,7 @@ class LaserScanMerger
         sensor_msgs::LaserScan, sensor_msgs::LaserScan>
         tApproxTimeLaser;
     typedef message_filters::Synchronizer<tApproxTimeLaser> tSynchronizer;
-    typedef std::unique_ptr<tSynchronizer> tSynchronizerPtr;
+    typedef std::shared_ptr<tSynchronizer> tSynchronizerPtr;
 
 public:
     LaserScanMerger();

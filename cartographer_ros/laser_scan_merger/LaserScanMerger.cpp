@@ -6,8 +6,6 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <string>
 
-using cartographer::common::make_unique;
-
 LaserScanMerger::LaserScanMerger()
     : m_nh("~"), m_tfListener(m_tfBuffer), m_outputFrame("base_link")
 {
@@ -20,7 +18,7 @@ LaserScanMerger::LaserScanMerger()
     m_scan1Subscriber.subscribe(m_nh, "scan1", 1);
     m_scan2Subscriber.subscribe(m_nh, "scan2", 1);
 
-    m_synchronizer = make_unique<tSynchronizer>(
+    m_synchronizer = std::make_shared<tSynchronizer>(
         tApproxTimeLaser(2), m_scan1Subscriber, m_scan2Subscriber);
     m_synchronizer->registerCallback(
         boost::bind(&LaserScanMerger::scanCallback, this, _1, _2));
@@ -51,7 +49,7 @@ void LaserScanMerger::laserScanToPointCloud(
                                _scan->header.frame_id,
                                _scan->header.stamp +
                                    ros::Duration((double)_scan->scan_time),
-                               ros::Duration(0.05),
+                               ros::Duration(0.2),
                                &errorMsg))
     {
         try
