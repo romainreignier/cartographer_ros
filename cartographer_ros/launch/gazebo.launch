@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<launch>
+    <param name="robot_description" textfile="$(find cartographer_ros)/urdf/simple_robot.urdf" />
+
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model simple_robot" />
+
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name"   value="$(find cartographer_ros)/worlds/wall.world"/>
+		<arg name="paused"       value="false"/>
+		<arg name="use_sim_time" value="true"/>
+		<arg name="gui"          value="true"/>
+		<arg name="headless"     value="false"/>
+		<arg name="debug"        value="false"/>
+	</include>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+        respawn="false" output="screen">
+    </node>
+
+    <node name="cartographer_node" pkg="cartographer_ros"
+      type="cartographer_node" args="
+          -configuration_directory $(find cartographer_ros)/configuration_files
+          -configuration_basename laser_missing_echo_ray.lua"
+      output="screen">
+      <remap from="scan" to="/scan" />
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" required="true"
+        args="-d $(find cartographer_ros)/configuration_files/demo_2d.rviz" />
+
+    <node pkg="joy" type="joy_node" name="joy_node">
+		<param name="dev"             value="/dev/input/js0"/>
+		<param name="deadzone"        value="0.3"/>
+		<param name="autorepeat_rate" value="20"/>
+	</node>
+
+	<node pkg="teleop_twist_joy" name="teleop_twist_joy" type="teleop_node">
+        <param name="enable_button" value="6"/>
+        <param name="axis_linear"   value="3"/>
+        <param name="scale_linear"  value="1.0"/>
+        <param name="axis_angular"  value="0"/>
+        <param name="scale_angular" value="0.6"/>
+	</node>
+
+    <node name="bag_record" pkg="rosbag" type="record" args="-a"/>
+</launch>
