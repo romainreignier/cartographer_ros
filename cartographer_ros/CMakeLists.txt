@@ -16,6 +16,9 @@ cmake_minimum_required(VERSION 2.8.12)  # Ships with Ubuntu 14.04 (Trusty)
 
 project(cartographer_ros)
 
+## Add support for C++11, supported in ROS Kinetic and newer
+add_definitions(-std=c++11)
+
 set(PACKAGE_DEPENDENCIES
   cartographer_ros_msgs
   eigen_conversions
@@ -58,6 +61,7 @@ endif()
 
 include_directories(
   ${urdfdom_headers_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
 
 # Override Catkin's GTest configuration to use GMock.
@@ -147,6 +151,9 @@ if (CATKIN_ENABLE_TESTING)
     set_target_properties(${TEST_NAME} PROPERTIES COMPILE_FLAGS ${TARGET_COMPILE_FLAGS})
   endforeach()
 endif()
+
+add_executable(laser_filter src/laser_filter.cc)
+target_link_libraries(laser_filter ${catkin_LIBRARIES})
 
 install(DIRECTORY launch urdf configuration_files
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

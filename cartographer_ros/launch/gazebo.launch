@@ -17,12 +17,14 @@
         respawn="false" output="screen">
     </node>
 
+    <node name="laser_filter" pkg="cartographer_ros" type="laser_filter" output="screen"/>
+
     <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
           -configuration_directory $(find cartographer_ros)/configuration_files
           -configuration_basename laser_missing_echo_ray.lua"
       output="screen">
-      <remap from="scan" to="/scan" />
+      <remap from="scan" to="/filtered_scan" />
     </node>
 
     <node name="rviz" pkg="rviz" type="rviz" required="true"
@@ -42,5 +44,5 @@
         <param name="scale_angular" value="0.6"/>
 	</node>
 
-    <node name="bag_record" pkg="rosbag" type="record" args="-a"/>
+    <!--node name="bag_record" pkg="rosbag" type="record" args="-a"/-->
 </launch>
